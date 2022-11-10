@@ -102,7 +102,7 @@ end;
 procedure TReceiverThread.BotStartCommandHandler(ASender: TObject; const ACommand: String;
   AMessage: TTelegramMessageObj);
 begin
-  FBot.sendMessage('Это телеграм бот для приема ответов');
+  FBot.sendMessage('Это телеграм бот для турнира "Своей игры"');
 end;
 
 procedure TReceiverThread.SendMsgToMainThread;
