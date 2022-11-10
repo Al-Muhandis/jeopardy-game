@@ -1,0 +1,441 @@
+object FrmMain: TFrmMain
+  Left = 306
+  Height = 465
+  Top = 223
+  Width = 925
+  Caption = 'Своя игра'
+  ClientHeight = 465
+  ClientWidth = 925
+  DesignTimePPI = 120
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  SessionProperties = 'EdtAdminChatID.Text;EdtChatID.Text;EdtTelegramToken.Text;MmQuestion.Lines;Width;Height;Left;Top'
+  LCLVersion = '2.2.4.0'
+  object PgCntrl: TPageControl
+    Left = 0
+    Height = 465
+    Top = 0
+    Width = 925
+    ActivePage = TbShtGame
+    Align = alClient
+    TabIndex = 0
+    TabOrder = 0
+    object TbShtGame: TTabSheet
+      Caption = 'Игра'
+      ClientHeight = 432
+      ClientWidth = 917
+      object GroupBox1: TGroupBox
+        Left = 0
+        Height = 432
+        Top = 0
+        Width = 371
+        Align = alLeft
+        Caption = 'Ведущий'
+        ClientHeight = 407
+        ClientWidth = 367
+        TabOrder = 0
+        object GrpBxQuestion: TGroupBox
+          Left = 0
+          Height = 330
+          Top = 0
+          Width = 367
+          Align = alClient
+          Caption = '❔ Номер и/или текст вопроса:'
+          ClientHeight = 305
+          ClientWidth = 363
+          TabOrder = 0
+          object MmQuestion: TMemo
+            Left = 0
+            Height = 258
+            Top = 0
+            Width = 363
+            Align = alClient
+            TabOrder = 0
+          end
+          object BtnQuestionSend: TButton
+            Left = 0
+            Height = 47
+            Top = 258
+            Width = 363
+            Align = alBottom
+            Caption = '❔ Отправить вопрос'
+            OnClick = BtnQuestionSendClick
+            TabOrder = 1
+          end
+        end
+        object GroupBox2: TGroupBox
+          Left = 0
+          Height = 77
+          Top = 330
+          Width = 367
+          Align = alBottom
+          Caption = 'Отправить кнопку "Есть ответ":'
+          ClientHeight = 52
+          ClientWidth = 363
+          TabOrder = 1
+          object BtnSendButton: TButton
+            Left = 0
+            Height = 47
+            Top = 5
+            Width = 363
+            Align = alBottom
+            Caption = '💡 Можно отвечать'
+            Enabled = False
+            OnClick = BtnSendButtonClick
+            TabOrder = 0
+          end
+        end
+      end
+      object GroupBox3: TGroupBox
+        Left = 377
+        Height = 432
+        Top = 0
+        Width = 540
+        Align = alClient
+        Caption = 'Раунды'
+        ClientHeight = 407
+        ClientWidth = 536
+        TabOrder = 1
+        object RxDBGrd: TRxDBGrid
+          Left = 0
+          Height = 374
+          Top = 33
+          Width = 536
+          ColumnDefValues.BlobText = '(blob)'
+          TitleButtons = False
+          AutoSort = True
+          Columns = <          
+            item
+              Title.Alignment = taCenter
+              Title.Orientation = toHorizontal
+              Title.Caption = 'ID'
+              Width = 0
+              Visible = False
+              FieldName = 'id'
+              EditButtons = <>
+              Filter.DropDownRows = 0
+              Filter.EmptyValue = '(Empty)'
+              Filter.NotEmptyValue = '(Not empty)'
+              Filter.AllValue = '(All values)'
+              Filter.EmptyFont.Style = [fsItalic]
+              Filter.ItemIndex = -1
+              Footers = <>
+            end          
+            item
+              Title.Alignment = taCenter
+              Title.Orientation = toHorizontal
+              Title.Caption = 'Вопрос'
+              Width = 165
+              FieldName = 'question'
+              EditButtons = <>
+              Filter.DropDownRows = 0
+              Filter.EmptyValue = '(Empty)'
+              Filter.NotEmptyValue = '(Not empty)'
+              Filter.AllValue = '(All values)'
+              Filter.EmptyFont.Style = [fsItalic]
+              Filter.ItemIndex = -1
+              Footers = <>
+            end          
+            item
+              Title.Alignment = taCenter
+              Title.Orientation = toHorizontal
+              Title.Caption = 'Игрок'
+              Width = 165
+              FieldName = 'user'
+              EditButtons = <>
+              Filter.DropDownRows = 0
+              Filter.EmptyValue = '(Empty)'
+              Filter.NotEmptyValue = '(Not empty)'
+              Filter.AllValue = '(All values)'
+              Filter.EmptyFont.Style = [fsItalic]
+              Filter.ItemIndex = -1
+              Footers = <>
+            end          
+            item
+              MaxSize = 50
+              PickList.Strings = (
+                '?'
+                'Взят'
+                'Не взят'
+              )
+              Title.Alignment = taCenter
+              Title.Orientation = toHorizontal
+              Title.Caption = 'Ответ'
+              Width = 166
+              FieldName = 'reply'
+              EditButtons = <>
+              Filter.DropDownRows = 0
+              Filter.EmptyValue = '(Empty)'
+              Filter.NotEmptyValue = '(Not empty)'
+              Filter.AllValue = '(All values)'
+              Filter.EmptyFont.Style = [fsItalic]
+              Filter.ItemIndex = -1
+              Footers = <>
+              KeyList.Strings = (
+                '0'
+                '1'
+                '2'
+              )
+              NotInKeyListIndex = 0
+            end>
+          KeyStrokes = <          
+            item
+              Command = rxgcShowFindDlg
+              ShortCut = 16454
+              Enabled = True
+            end          
+            item
+              Command = rxgcShowColumnsDlg
+              ShortCut = 16471
+              Enabled = True
+            end          
+            item
+              Command = rxgcShowFilterDlg
+              ShortCut = 16468
+              Enabled = True
+            end          
+            item
+              Command = rxgcShowSortDlg
+              ShortCut = 16467
+              Enabled = True
+            end          
+            item
+              Command = rxgcShowQuickFilter
+              ShortCut = 16465
+              Enabled = True
+            end          
+            item
+              Command = rxgcHideQuickFilter
+              ShortCut = 16456
+              Enabled = True
+            end          
+            item
+              Command = rxgcSelectAll
+              ShortCut = 16449
+              Enabled = True
+            end          
+            item
+              Command = rxgcDeSelectAll
+              ShortCut = 16429
+              Enabled = True
+            end          
+            item
+              Command = rxgcInvertSelection
+              ShortCut = 16426
+              Enabled = True
+            end          
+            item
+              Command = rxgcOptimizeColumnsWidth
+              ShortCut = 16427
+              Enabled = True
+            end          
+            item
+              Command = rxgcCopyCellValue
+              ShortCut = 16451
+              Enabled = True
+            end>
+          FooterOptions.DrawFullLine = False
+          SearchOptions.QuickSearchOptions = [loCaseInsensitive, loPartialKey]
+          SearchOptions.FromStart = False
+          OptionsRx = [rdgAllowColumnsForm, rdgAllowDialogFind, rdgAllowQuickFilter]
+          Align = alClient
+          Color = clWindow
+          DrawFullLine = False
+          FocusColor = clRed
+          SelectedColor = clHighlight
+          DataSource = DtSrc
+          Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColumnMove, dgColLines, dgRowLines, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit]
+          TabOrder = 0
+          TitleStyle = tsNative
+        end
+        object ToolBar1: TToolBar
+          Left = 0
+          Height = 33
+          Top = 0
+          Width = 536
+          Caption = 'ToolBar1'
+          TabOrder = 1
+          object DBNavigator1: TDBNavigator
+            Left = 1
+            Height = 28
+            Top = 2
+            Width = 271
+            BevelOuter = bvNone
+            ChildSizing.EnlargeHorizontal = crsScaleChilds
+            ChildSizing.EnlargeVertical = crsScaleChilds
+            ChildSizing.ShrinkHorizontal = crsScaleChilds
+            ChildSizing.ShrinkVertical = crsScaleChilds
+            ChildSizing.Layout = cclLeftToRightThenTopToBottom
+            ChildSizing.ControlsPerLine = 100
+            ClientHeight = 28
+            ClientWidth = 271
+            DataSource = DtSrc
+            Options = []
+            TabOrder = 0
+            VisibleButtons = [nbFirst, nbPrior, nbLast, nbDelete, nbPost]
+          end
+        end
+      end
+      object Splitter1: TSplitter
+        Left = 371
+        Height = 432
+        Top = 0
+        Width = 6
+      end
+    end
+    object TbShtOptions: TTabSheet
+      Caption = 'Настройки'
+      ClientHeight = 432
+      ClientWidth = 917
+      object GroupBox4: TGroupBox
+        Left = 16
+        Height = 299
+        Top = 16
+        Width = 504
+        Caption = 'Телеграм'
+        ClientHeight = 274
+        ClientWidth = 500
+        TabOrder = 0
+        object EdtTelegramToken: TLabeledEdit
+          Left = 16
+          Height = 28
+          Top = 24
+          Width = 464
+          Anchors = [akTop, akLeft, akRight]
+          EditLabel.Height = 20
+          EditLabel.Width = 464
+          EditLabel.Caption = 'Токен'
+          EditLabel.ParentColor = False
+          TabOrder = 0
+          TextHint = 'Введите токен телеграм бота'
+        end
+        object EdtChatID: TLabeledEdit
+          Left = 136
+          Height = 28
+          Top = 96
+          Width = 344
+          Anchors = [akTop, akLeft, akRight]
+          EditLabel.Height = 20
+          EditLabel.Width = 49
+          EditLabel.Caption = 'Chat ID'
+          EditLabel.ParentColor = False
+          LabelPosition = lpLeft
+          TabOrder = 1
+          TextHint = 'Введите chat id канала или группы'
+        end
+        object Label1: TLabel
+          Left = 8
+          Height = 20
+          Top = 72
+          Width = 440
+          Caption = 'Канал или группа, куда должны отправляться вопрос и кнопка'
+          ParentColor = False
+        end
+        object TglBxReceive: TToggleBox
+          Left = 16
+          Height = 31
+          Top = 144
+          Width = 238
+          Caption = 'Принимать ответы'
+          OnChange = TglBxReceiveChange
+          TabOrder = 2
+        end
+        object EdtAdminChatID: TLabeledEdit
+          Left = 136
+          Height = 28
+          Top = 216
+          Width = 344
+          Anchors = [akTop, akLeft, akRight]
+          EditLabel.Height = 20
+          EditLabel.Width = 95
+          EditLabel.Caption = 'Admin chat ID'
+          EditLabel.ParentColor = False
+          LabelPosition = lpLeft
+          TabOrder = 3
+          TextHint = 'Введите chat id канала или группы'
+        end
+        object Label2: TLabel
+          Left = 16
+          Height = 20
+          Top = 192
+          Width = 204
+          Caption = 'Ведущий или администратор'
+          ParentColor = False
+        end
+      end
+    end
+  end
+  object ZCnctn: TZConnection
+    ControlsCodePage = cCP_UTF8
+    AutoEncodeStrings = True
+    Properties.Strings = (
+      'AutoEncodeStrings=True'
+      'controls_cp=CP_UTF8'
+    )
+    DesignConnection = True
+    Port = 0
+    Database = 'default.sqlite3'
+    Protocol = 'sqlite-3'
+    Left = 432
+    Top = 56
+  end
+  object DtSrc: TDataSource
+    DataSet = ZQry
+    Left = 552
+    Top = 56
+  end
+  object ZQry: TZQuery
+    Connection = ZCnctn
+    SQL.Strings = (
+      'select * from rounds'
+    )
+    Params = <>
+    Left = 494
+    Top = 56
+    object ZQryID: TAutoIncField
+      FieldKind = fkData
+      FieldName = 'id'
+      Index = 0
+      LookupCache = False
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+      ReadOnly = False
+      Required = False
+    end
+    object ZQryquestion: TStringField
+      FieldKind = fkData
+      FieldName = 'question'
+      Index = 1
+      LookupCache = False
+      ProviderFlags = [pfInUpdate, pfInWhere]
+      ReadOnly = False
+      Required = False
+      Size = 250
+    end
+    object ZQryuser: TStringField
+      FieldKind = fkData
+      FieldName = 'user'
+      Index = 2
+      LookupCache = False
+      ProviderFlags = [pfInUpdate, pfInWhere]
+      ReadOnly = False
+      Required = False
+      Size = 128
+    end
+    object ZQryreply: TLargeintField
+      FieldKind = fkData
+      FieldName = 'reply'
+      Index = 3
+      LookupCache = False
+      ProviderFlags = [pfInUpdate, pfInWhere]
+      ReadOnly = False
+      Required = False
+      OnGetText = ZQryreplyGetText
+    end
+  end
+  object IniPrpStrg: TIniPropStorage
+    StoredValues = <>
+    Left = 523
+    Top = 188
+  end
+end
