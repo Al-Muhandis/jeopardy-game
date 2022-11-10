@@ -12,6 +12,7 @@
 * fp-telegram - для работы телеграм бота
 * rxnew, zcomponent (zeos) - DB aware для работы компонентов базы данных под SQLite3
 
+----------------------------
 
 Jeopardy game in telegram.
 
