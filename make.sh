@@ -9,27 +9,35 @@ Options:
 EOF
 )
 
-function priv_use
+function priv_pkgsearch
 (
-    [[ -d 'use' ]] || mkdir 'use'
-    for item in "${@}"; do
-        declare -A VAR=(
-            [url]="https://packages.lazarus-ide.org/${item}.zip"
-            [out]=$(mktemp)
-            [dir]=${item##/*}
-        )
-        wget --output-document "${VAR[out]}" "${VAR[url]}"
-        unzip -o "${VAR[out]}" -d "use/${VAR[dir]}"
-        rm --verbose "${VAR[out]}"
-    done
+    if ((${#})); then
+        for REPLY in "${@}"; do
+            lazbuild --verbose-pkgsearch "${REPLY}" || lazbuild --add-package "${REPLY}"
+        done
+    fi
 )
 
-function pub_build
+function priv_packages
 (
-    git submodule update --init --recursive
-    priv_use 'Rx' 'ZeosDBO'
-    find 'use' -type 'f' -name '*.lpk' -exec lazbuild --add-package-link {} \;
-    find 'src' -type 'f' -name '*.lpi' -exec lazbuild --recursive --build-mode=release {} \;
+    if [[ -d 'use' ]]; then
+        git submodule update --recursive --remote
+    else
+        mkdir 'use'
+    fi
+    if ((${#})); then
+        for REPLY in "${@}"; do
+            declare -A VAR=(
+                [url]="https://packages.lazarus-ide.org/${REPLY}.zip"
+                [out]=$(mktemp)
+                [dir]=${REPLY##/*}
+            )
+            wget --output-document "${VAR[out]}" "${VAR[url]}"
+            unzip -o "${VAR[out]}" -d "use/${VAR[dir]}"
+            rm --verbose "${VAR[out]}"
+        done
+    fi
+    find 'use' -type 'f' -name '*.lpk' -exec lazbuild --add-package-link {} +
 )
 
 function priv_main
@@ -46,7 +54,12 @@ function priv_main
     fi
     if ((${#})); then
         case ${1} in
-            build) pub_build 1>&2 ;;
+            build)
+                priv_pkgsearch
+                priv_packages 'Rx' 'ZeosDBO'
+                find 'src' -type 'f' -name '*.lpi' \
+                    -exec lazbuild --no-write-project --recursive --no-write-project --build-mode=release {} 1>&2 +
+                ;;
         esac
     else
         priv_clippit
