@@ -1,0 +1,6 @@
+[submodule "use/fp-telegram"]
+	path = use/fp-telegram
+	url = https://github.com/Al-Muhandis/fp-telegram/
+[submodule "use/taskworker"]
+	path = use/taskworker
+	url = https://github.com/Al-Muhandis/taskworker.git
