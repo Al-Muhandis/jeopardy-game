@@ -11,7 +11,7 @@ object FrmMain: TFrmMain
   OnDestroy = FormDestroy
   OnShow = FormShow
   SessionProperties = 'EdtAdminChatID.Text;EdtChatID.Text;EdtTelegramToken.Text;MmQuestion.Lines;Width;Height;Left;Top'
-  LCLVersion = '2.2.4.0'
+  LCLVersion = '3.6.0.0'
   object PgCntrl: TPageControl
     Left = 0
     Height = 465
@@ -60,8 +60,8 @@ object FrmMain: TFrmMain
             Width = 363
             Align = alBottom
             Caption = '❔ Отправить вопрос'
-            OnClick = BtnQuestionSendClick
             TabOrder = 1
+            OnClick = BtnQuestionSendClick
           end
         end
         object GroupBox2: TGroupBox
@@ -82,8 +82,8 @@ object FrmMain: TFrmMain
             Align = alBottom
             Caption = '💡 Можно отвечать'
             Enabled = False
-            OnClick = BtnSendButtonClick
             TabOrder = 0
+            OnClick = BtnSendButtonClick
           end
         end
       end
@@ -338,8 +338,8 @@ object FrmMain: TFrmMain
           Top = 144
           Width = 238
           Caption = 'Принимать ответы'
-          OnChange = TglBxReceiveChange
           TabOrder = 2
+          OnChange = TglBxReceiveChange
         end
         object EdtAdminChatID: TLabeledEdit
           Left = 136
@@ -368,15 +368,15 @@ object FrmMain: TFrmMain
   end
   object ZCnctn: TZConnection
     ControlsCodePage = cCP_UTF8
-    AutoEncodeStrings = True
     Properties.Strings = (
       'AutoEncodeStrings=True'
       'controls_cp=CP_UTF8'
     )
     DesignConnection = True
+    DisableSavepoints = False
     Port = 0
     Database = 'default.sqlite3'
-    Protocol = 'sqlite-3'
+    Protocol = 'sqlite'
     Left = 432
     Top = 56
   end
