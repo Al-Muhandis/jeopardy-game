@@ -21,7 +21,7 @@ function priv_pkgsearch
 function priv_packages
 (
     if [[ -d 'use' ]]; then
-        git submodule update --init --recursive
+        git submodule update --recursive --init
         git submodule update --recursive --remote
     else
         mkdir 'use'
