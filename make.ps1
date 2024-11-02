@@ -10,7 +10,7 @@ Options:
 }
 
 Function PrivPrepare {
-    Start-Process -Wait -FilePath 'winget' -ArgumentList 'install --disable-interactivity git fpc lazarus'
+    Start-Process -Wait -FilePath 'choco' -ArgumentList 'install git fpc lazarus -y'
 }
 
 Function PrivPkgsearch {
