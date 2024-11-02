@@ -36,7 +36,7 @@ function priv_main {
             default {priv_clipper}
         }
     } else {
-        pub_clipper
+        priv_clipper
     }
 }
 
