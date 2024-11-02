@@ -15,10 +15,8 @@ Function PrivMsiexec {
             Uri = $REPLY
             OutFile = Split-Path -Path $REPLY -Leaf
         }
-        Write-Output "Invoke-WebRequest $($params.Uri)"
-        $ProgressPreference = 'SilentlyContinue'
+        Write-Output "Download $($params)"
         Invoke-WebRequest @params
-        $ProgressPreference = 'Continue'
         Switch ((Split-Path -Path $params.OutFile -Leaf).Split(".")[-1]) {
             'msi' {Start-Process -Wait -FilePath 'msiexec' -ArgumentList '/passive', '/package', $params.OutFile}
             Default {Start-Process -Wait $params.OutFile -ArgumentList '/silent', '/norestart'}
@@ -37,9 +35,8 @@ Function PrivPrepare {
         If (-not (Get-Command $REPLY)) {
             PrivMsiexec $ENV[$REPLY]
         }
-        Get-Command -Path $REPLY
+        Get-Command $REPLY
     }
-    Get-Command -Path 'lazbuild'
 }
 
 Function PrivPkgsearch {
