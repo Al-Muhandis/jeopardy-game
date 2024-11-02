@@ -15,7 +15,7 @@ Function PrivMsiexec {
             Uri = $REPLY
             OutFile = Split-Path -Path $REPLY -Leaf
         }
-        Write-Output "Download $($params)"
+        Write-Output "Download $params"
         Invoke-WebRequest @params
         Switch ((Split-Path -Path $params.OutFile -Leaf).Split(".")[-1]) {
             'msi' {Start-Process -Wait -FilePath 'msiexec' -ArgumentList '/passive', '/package', $params.OutFile}
