@@ -19,7 +19,7 @@ Function PrivMsiexec {
         Invoke-WebRequest @params
         Switch ((Split-Path -Path $params.OutFile -Leaf).Split(".")[-1]) {
             'msi' {Start-Process -Wait -FilePath 'msiexec' -ArgumentList '/passive', '/package', $params.OutFile}
-            Default {Start-Process -Wait $params.OutFile -ArgumentList '/silent', '/norestart'}
+            Default {Start-Process -Wait -FilePath $params.OutFile -ArgumentList '/silent', '/norestart'}
         }
         Write-Output "Remove-Item $($params.OutFile)"
         Remove-Item $params.OutFile
