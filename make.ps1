@@ -48,7 +48,8 @@ Function PrivPackages {
 }
 
 Function PrivMain {
-    Set-PSDebug -Strict
+    Invoke-ScriptAnalyzer -EnableExit -Path $PSCommandPath
+    Set-PSDebug -Strict -Trace 1
     If ($args.count -gt 0) {
         PrivPrepare
         Switch ($args[0]) {
