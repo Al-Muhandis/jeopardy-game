@@ -31,10 +31,9 @@ function priv_packages
             declare -A VAR=(
                 [url]="https://packages.lazarus-ide.org/${REPLY}.zip"
                 [out]=$(mktemp)
-                [dir]=${REPLY##/*}
             )
             wget --output-document "${VAR[out]}" "${VAR[url]}"
-            unzip -o "${VAR[out]}" -d "use/${VAR[dir]}"
+            unzip -o "${VAR[out]}" -d "use/${REPLY}"
             rm --verbose "${VAR[out]}"
         done
     fi

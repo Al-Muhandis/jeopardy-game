@@ -1,18 +1,15 @@
 #!/usr/bin/env pwsh
 ##############################################################################################################
 
-function priv_clipper {
-    $ENV = @{
-        vagrant  = 'it-gro/win10-ltsc-eval'
-        download = 'https://microsoft.com/en-us/evalcenter'
-        package  = 'https://learn.microsoft.com/en-us/mem/configmgr/develop/apps/how-to-create-the-windows-installer-file-msi'
-        shell    = 'https://learn.microsoft.com/ru-ru/powershell'
-        habr     = 'https://habr.com/ru/companies/ruvds/articles/487876/'
-    }
-    Write-Output $ENV
+Function PrivClipper {
+    Write-Output "
+Usage: pwsh -File make.ps1 [OPTIONS]
+Options:
+    build   Build program
+"
 }
 
-function priv_prepare {
+Function PrivPrepare {
     $params = @{
         Uri = 'https://aka.ms/getwinget'
         OutFile = 'Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle'
@@ -21,24 +18,59 @@ function priv_prepare {
     Invoke-WebRequest @params
     $ProgressPreference = 'Continue'
     Add-AppxPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle
-    winget install --disable-interactivity lazarus git
+    Start-Process -Wait -FilePath 'winget' -ArgumentList 'install --disable-interactivity git fpc lazarus'
 }
 
-function priv_packages {
-
-}
-
-function priv_main {
-    if ($args.count > 0) {
-        pub_prepare
-        switch ($args[1]) {
-            'build' {Invoke-ScriptAnalyzer -EnableExit -Recurse -Path scripts}
-            default {Write-Output $args}
+Function PrivPkgsearch {
+    ForEach ($REPLY in $args) {
+        If -not (Start-Process -Wait -FilePath 'lazbuild' -ArgumentList "--verbose-pkgsearch $($REPLY)")
+            Start-Process -Wait -FilePath 'lazbuild' -ArgumentList "--add-package $($REPLY)"
         }
-    } else {
-        Write-Output $args
+    }
+}
+
+Function PrivPackages {
+    If ( Test-Path -Path 'use' ) {
+        Start-Process -Wait -FilePath 'git' -ArgumentList 'submodule update --init --recursive'
+        Start-Process -Wait -FilePath 'git' -ArgumentList 'submodule update --recursive --remote'
+    Else {
+        New-Item -ItemType Directory -Name 'use'
+    }
+    If ($args.count -gt 0) {
+        For ($REPLY in $args) {
+            $params = @{
+                Uri = "https://packages.lazarus-ide.org/$($REPLY).zip"
+                OutFile = "$($REPLY).zip"
+            }
+            $ProgressPreference = 'SilentlyContinue'
+            Invoke-WebRequest @params
+            $ProgressPreference = 'Continue'
+            Expand-Archive -Path $params.OutFile -DestinationPath $REPLY -Force
+            Remove-Item $params.OutFile
+        }
+    }
+    Get-ChildItem -Filter '*.lpk' -Recurse -File –Path 'use' | ForEach-Object {
+        Start-Process -Wait -FilePath 'lazbuild' -ArgumentList "--add-package-link $($_.Name)"
+    }
+}
+
+Function PrivMain {
+    If ($args.count -gt 0) {
+        PrivPrepare
+        Switch ($args[0]) {
+            'build' {
+                PrivPkgsearch
+                PrivPackages 'Rx' 'ZeosDBO'
+                Get-ChildItem -Filter '*.lpi' -Recurse -File –Path 'src' | ForEach-Object {
+                    Start-Process -Wait -FilePath 'lazbuild' -ArgumentList "--no-write-project --recursive --no-write-project --build-mode=release $($_.Name)"
+                }
+            }
+            Default {PrivClipper}
+        }
+    } Else {
+        Write-Output $args.count
     }
 }
 
 ##############################################################################################################
-priv_main @args
+PrivMain @args
