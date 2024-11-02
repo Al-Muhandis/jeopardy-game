@@ -15,7 +15,7 @@ Function PrivMsiexec {
             Uri = $REPLY
             OutFile = Split-Path -Path $REPLY -Leaf
         }
-        Write-Output "Download $params"
+        Write-Output "Invoke-WebRequest $($params.Uri)"
         Invoke-WebRequest @params
         Switch ((Split-Path -Path $params.OutFile -Leaf).Split(".")[-1]) {
             'msi' {Start-Process -Wait -FilePath 'msiexec' -ArgumentList '/passive', '/package', $params.OutFile}
@@ -32,7 +32,9 @@ Function PrivPrepare {
         lazbuild = 'https://netix.dl.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%203.6/lazarus-3.6-fpc-3.2.2-win64.exe'
     }
     ForEach ($REPLY in $ENV.Keys) {
+        Write-Output "Check $REPLY"
         If (-not (Get-Command $REPLY)) {
+            Write-Output "Install $REPLY"
             PrivMsiexec $ENV[$REPLY]
         }
         Get-Command $REPLY
