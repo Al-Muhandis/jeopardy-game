@@ -16,7 +16,7 @@ Function PrivPrepare {
 
 Function PrivPkgsearch {
     ForEach ($REPLY in $args) {
-        If (-not Start-Process -Wait -FilePath 'lazbuild' -ArgumentList '--verbose-pkgsearch', $REPLY) {
+        If (-not (Start-Process -Wait -FilePath 'lazbuild' -ArgumentList '--verbose-pkgsearch', $REPLY)) {
             Start-Process -Wait -FilePath 'lazbuild' -ArgumentList '--add-package', $REPLY
         }
     }
