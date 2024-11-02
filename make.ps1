@@ -17,6 +17,7 @@ Function PrivPrepare {
     $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest @params
     $ProgressPreference = 'Continue'
+    Import-Module -Name Appx
     Add-AppxPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle
     Start-Process -Wait -FilePath 'winget' -ArgumentList 'install --disable-interactivity git fpc lazarus'
 }
