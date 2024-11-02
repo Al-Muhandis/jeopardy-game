@@ -37,7 +37,7 @@ Function PrivPackages {
         New-Item -ItemType Directory -Name 'use'
     }
     If ($args.count -gt 0) {
-        For ($REPLY in $args) {
+        ForEach ($REPLY in $args) {
             $params = @{
                 Uri = "https://packages.lazarus-ide.org/$($REPLY).zip"
                 OutFile = "$($REPLY).zip"
