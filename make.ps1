@@ -34,7 +34,7 @@ Function PrivPrepare {
         lazbuild = 'https://netix.dl.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%203.6/lazarus-3.6-fpc-3.2.2-win64.exe'
     }
     ForEach ($REPLY in $ENV.Keys) {
-        If (-not (Get-Command -Path $REPLY)) {
+        If (-not (Get-Command $REPLY)) {
             PrivMsiexec $ENV[$REPLY]
         }
         Get-Command -Path $REPLY
