@@ -11,6 +11,7 @@ Options:
 
 Function PrivPrepare {
     Start-Process -Wait -FilePath 'choco' -ArgumentList 'install git fpc lazarus -y'
+    Start-Process -Wait -FilePath 'refreshenv'
 }
 
 Function PrivPkgsearch {
@@ -47,6 +48,7 @@ Function PrivPackages {
 }
 
 Function PrivMain {
+    Set-PSDebug -Strict
     If ($args.count -gt 0) {
         PrivPrepare
         Switch ($args[0]) {
