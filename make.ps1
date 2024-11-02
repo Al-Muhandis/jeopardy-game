@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 ##############################################################################################################
 
 Function PrivClipper {
@@ -10,7 +10,9 @@ Options:
 }
 
 Function PrivPrepare {
-    Start-Process -Wait -FilePath 'choco' -ArgumentList 'install git fpc lazarus -y'
+    Start-Process -Wait -FilePath 'choco' -ArgumentList 'install git -y'
+    Start-Process -Wait -FilePath 'choco' -ArgumentList 'install fpc -y'
+    Start-Process -Wait -FilePath 'choco' -ArgumentList 'install lazarus -y'
     Start-Process -Wait -FilePath 'refreshenv'
 }
 
