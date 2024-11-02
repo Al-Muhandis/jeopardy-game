@@ -33,7 +33,7 @@ Function PrivPackages {
     If ( Test-Path -Path 'use' ) {
         Start-Process -Wait -FilePath 'git' -ArgumentList 'submodule update --init --recursive'
         Start-Process -Wait -FilePath 'git' -ArgumentList 'submodule update --recursive --remote'
-    Else {
+    } Else {
         New-Item -ItemType Directory -Name 'use'
     }
     If ($args.count -gt 0) {
