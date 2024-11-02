@@ -31,3 +31,8 @@ jobs:
       if: runner.os == 'Linux'
       shell: bash
       run: bash -x make.sh build
+
+    - name: Build on Windows
+      if: runner.os == 'Windows'
+      shell: powershell
+      run: powershell -File make.ps1 build
