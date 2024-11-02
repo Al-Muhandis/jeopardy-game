@@ -9,9 +9,37 @@ Options:
 "
 }
 
+Function PrivMsiexec {
+    Foreach ($REPLY in $args) {
+        $params = @{
+            Uri = $REPLY
+            OutFile = Split-Path -Path $REPLY -Leaf
+        }
+        Write-Output "Invoke-WebRequest $($params.Uri)"
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest @params
+        $ProgressPreference = 'Continue'
+        Switch ((Split-Path -Path $params.OutFile -Leaf).Split(".")[-1]) {
+            'msi' {Start-Process -Wait -FilePath 'msiexec' -ArgumentList '/passive', '/package', $params.OutFile}
+            Default {Start-Process -Wait $params.OutFile -ArgumentList '/silent', '/norestart'}
+        }
+        Write-Output "Remove-Item $($params.OutFile)"
+        Remove-Item $params.OutFile
+    }
+}
+
 Function PrivPrepare {
-    Start-Process -Wait -FilePath 'choco' -ArgumentList 'install', 'git', 'fpc', 'lazarus', '-y'
-    Start-Process -Wait -FilePath 'refreshenv'
+    $ENV = @{
+        git  = 'https://github.com/git-for-windows/git/releases/download/v2.47.0.windows.2/Git-2.47.0.2-64-bit.exe'
+        lazbuild = 'https://netix.dl.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%203.6/lazarus-3.6-fpc-3.2.2-win64.exe'
+    }
+    ForEach ($REPLY in $ENV.Keys) {
+        If (-not (Get-Command -Path $REPLY)) {
+            PrivMsiexec $ENV[$REPLY]
+        }
+        Get-Command -Path $REPLY
+    }
+    Get-Command -Path 'lazbuild'
 }
 
 Function PrivPkgsearch {
@@ -49,7 +77,7 @@ Function PrivPackages {
 
 Function PrivMain {
     Invoke-ScriptAnalyzer -EnableExit -Path $PSCommandPath
-    Set-PSDebug -Strict
+    Set-PSDebug -Strict -Trace 1
     If ($args.count -gt 0) {
         PrivPrepare
         Switch ($args[0]) {
