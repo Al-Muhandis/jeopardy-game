@@ -36,4 +36,4 @@ jobs:
     - name: Build on Windows
       if: runner.os == 'Windows'
       shell: powershell
-      run: powershell -File make.ps1 build
+      run: pwsh -File make.ps1 build

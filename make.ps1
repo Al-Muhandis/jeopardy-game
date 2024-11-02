@@ -31,7 +31,7 @@ function priv_packages {
 function priv_main {
     if ($args.count > 0) {
         pub_prepare
-        switch ($args[0]) {
+        switch ($args[1]) {
             'build' {Invoke-ScriptAnalyzer -EnableExit -Recurse -Path scripts}
             default {priv_clipper}
         }
