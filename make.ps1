@@ -33,10 +33,10 @@ function priv_main {
         pub_prepare
         switch ($args[1]) {
             'build' {Invoke-ScriptAnalyzer -EnableExit -Recurse -Path scripts}
-            default {priv_clipper}
+            default {Write-Output $args}
         }
     } else {
-        priv_clipper
+        Write-Output $args
     }
 }
 
