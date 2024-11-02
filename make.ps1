@@ -13,11 +13,11 @@ Function PrivMsiexec {
     Foreach ($REPLY in $args) {
         $params = @{
             Uri = $REPLY
-            OutFile = Split-Path -Path $REPLY -Leaf
+            OutFile = (Split-Path -Path $REPLY -Leaf).Split('?')[0]
         }
         Write-Output "Invoke-WebRequest $($params.Uri)"
         Invoke-WebRequest @params
-        Switch ((Split-Path -Path $params.OutFile -Leaf).Split(".")[-1]) {
+        Switch ((Split-Path -Path $params.OutFile -Leaf).Split('.')[-1]) {
             'msi' {Start-Process -Wait -FilePath 'msiexec' -ArgumentList '/passive', '/package', $params.OutFile}
             Default {Start-Process -Wait -FilePath $params.OutFile -ArgumentList '/silent', '/norestart'}
         }
