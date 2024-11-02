@@ -27,17 +27,17 @@ Function PrivMsiexec {
 }
 
 Function PrivPrepare {
-    $ENV = @{
+    $VAR = @{
         git  = 'https://github.com/git-for-windows/git/releases/download/v2.47.0.windows.2/Git-2.47.0.2-64-bit.exe'
         lazbuild = 'https://netix.dl.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%203.6/lazarus-3.6-fpc-3.2.2-win64.exe'
     }
-    ForEach ($REPLY in $ENV.Keys) {
+    ForEach ($REPLY in $VAR.Keys) {
         Write-Output "Check $REPLY"
         If (-not (Get-Command $REPLY)) {
             Write-Output "Install $REPLY"
-            PrivMsiexec $ENV[$REPLY]
+            PrivMsiexec $VAR[$REPLY]
         }
-        Get-Command $REPLY
+        Get-ChildItem -Filter $REPLY -Recurse -File –Path $Env:PROGRAMFILES
     }
 }
 
