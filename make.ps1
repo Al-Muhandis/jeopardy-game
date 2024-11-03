@@ -3,7 +3,7 @@
 
 Function PrivClipper {
     Write-Output "
-Usage: pwsh -File make.ps1 [OPTIONS]
+Usage: pwsh -File $($PSCommandPath) [OPTIONS]
 Options:
     build   Build program
 "
@@ -16,10 +16,20 @@ Function PrivMsiexec {
             OutFile = (Split-Path -Path $REPLY -Leaf).Split('?')[0]
         }
         Write-Output "Invoke-WebRequest $($params.Uri)"
+        $ProgressPreference = 'SilentlyContinue'
         Invoke-WebRequest @params
+        $ProgressPreference = 'Continue'
         Switch ((Split-Path -Path $params.OutFile -Leaf).Split('.')[-1]) {
-            'msi' {Start-Process -Wait -FilePath 'msiexec' -ArgumentList '/passive', '/package', $params.OutFile}
-            Default {Start-Process -Wait -FilePath $params.OutFile -ArgumentList '/silent', '/norestart'}
+            'msi' {
+                If (Get-Command 'msiexec' | Out-Null) {
+                    Start-Process -Wait -FilePath 'msiexec' -ArgumentList '/passive', '/package', $params.OutFile
+                }
+            }
+            Default {
+                If ($Env:OS -eg 'Windows_NT') {
+                    Start-Process -Wait $params.OutFile -ArgumentList '/silent', '/norestart', "/dir=$($Env:HOME)/$REPLY"
+                }
+            }
         }
         Write-Output "Remove-Item $($params.OutFile)"
         Remove-Item $params.OutFile
@@ -33,10 +43,10 @@ Function PrivPrepare {
     }
     ForEach ($REPLY in $VAR.Keys) {
         Write-Output "Check $REPLY"
-        If (-not (Get-Command $REPLY)) {
+        If (-not (Get-Command $REPLY | Out-Null)) {
             Write-Output "Install $REPLY"
             PrivMsiexec $VAR[$REPLY]
-            Get-ChildItem -Filter $REPLY -Recurse -File –Path $Env:PROGRAMFILES
+            Get-ChildItem -Filter $REPLY -Recurse -File –Path $Env:HOME
         }
     }
 }
@@ -87,10 +97,12 @@ Function PrivMain {
                     Start-Process -Wait -FilePath 'lazbuild' -ArgumentList '--no-write-project', '--recursive', '--no-write-project', '--build-mode=release', $_.Name
                 }
             }
-            Default {PrivClipper}
+            Default {
+                PrivClipper
+            }
         }
     } Else {
-        Write-Output $args.count
+        PrivClipper
     }
 }
 
