@@ -9,15 +9,6 @@ Options:
 EOF
 )
 
-function priv_pkgsearch
-(
-    if ((${#})); then
-        for REPLY in "${@}"; do
-            lazbuild --verbose-pkgsearch "${REPLY}" || lazbuild --add-package "${REPLY}"
-        done
-    fi
-)
-
 function priv_packages
 (
     if [[ -d 'use' ]]; then
@@ -43,22 +34,23 @@ function priv_packages
 function priv_main
 (
     set -euo pipefail
+    shellcheck --external-sources "${0}"
+    shfmt -ci -fn -i 4 -d "${0}"
     if ! (which lazbuild); then
         source '/etc/os-release'
         case ${ID:?} in
             debian | ubuntu)
                 sudo apt-get update
                 sudo apt-get install -y lazarus
-            ;;
+                ;;
         esac
     fi
     if ((${#})); then
         case ${1} in
             build)
-                priv_pkgsearch
                 priv_packages 'Rx' 'ZeosDBO'
                 find 'src' -type 'f' -name '*.lpi' \
-                    -exec lazbuild --no-write-project --recursive --no-write-project --build-mode=release {} 1>&2 +
+                    -exec lazbuild --no-write-project --recursive --no-write-project --build-mode=release {} + 1>&2
                 ;;
         esac
     else

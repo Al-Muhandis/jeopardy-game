@@ -2,7 +2,7 @@
 ##############################################################################################################
 
 Function PrivClipper {
-    Write-Output "
+    Return "
 Usage: pwsh -File $($PSCommandPath) [OPTIONS]
 Options:
     build   Build program
@@ -15,34 +15,29 @@ Function PrivMsiexec {
             Uri = $REPLY
             OutFile = (Split-Path -Path $REPLY -Leaf).Split('?')[0]
         }
-        Write-Output "Invoke-WebRequest $($params.Uri)"
         $ProgressPreference = 'SilentlyContinue'
         Invoke-WebRequest @params
         $ProgressPreference = 'Continue'
         Switch ((Split-Path -Path $params.OutFile -Leaf).Split('.')[-1]) {
             'msi' {
-                If (Get-Command 'msiexec' | Out-Null) {
-                    Start-Process -Wait -FilePath 'msiexec' -ArgumentList '/passive', '/package', $params.OutFile
-                }
+                Start-Process -Wait -FilePath 'msiexec' -ArgumentList '/passive', '/package', $params.OutFile
             }
-            Default {
-                Start-Process -Wait $params.OutFile -ArgumentList '/silent', '/norestart', "/dir=$($Env:HOME)/$REPLY"
+            'exe' {
+                Start-Process -Wait $params.OutFile -ArgumentList '/silent', '/norestart', "/dir=$($Env:HOME)/$((Split-Path -Path $params.OutFile -Leaf).Split('.')[0])"
             }
         }
-        Write-Output "Remove-Item $($params.OutFile)"
         Remove-Item $params.OutFile
     }
 }
 
 Function PrivPrepare {
     $VAR = @{
+        far = 'https://www.farmanager.com/files/Far30b6060.x64.20221208.msi'
         git  = 'https://github.com/git-for-windows/git/releases/download/v2.47.0.windows.2/Git-2.47.0.2-64-bit.exe'
         lazbuild = 'https://netix.dl.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%203.6/lazarus-3.6-fpc-3.2.2-win64.exe?viasf=1'
     }
     ForEach ($REPLY in $VAR.Keys) {
-        Write-Output "Check $REPLY"
-        If (-not (Get-Command $REPLY | Out-Null)) {
-            Write-Output "Install $REPLY"
+        If (Get-Command $REPLY -ea 'silentlycontinue') {
             PrivMsiexec $VAR[$REPLY]
             Get-ChildItem -Filter $REPLY -Recurse -File –Path $Env:HOME
         }
@@ -83,8 +78,9 @@ Function PrivPackages {
 }
 
 Function PrivMain {
+    $ErrorActionPreference = 'stop'
+    Set-PSDebug -Strict -Trace 1
     Invoke-ScriptAnalyzer -EnableExit -Path $PSCommandPath
-    Set-PSDebug -Strict
     If ($args.count -gt 0) {
         PrivPrepare
         Switch ($args[0]) {
