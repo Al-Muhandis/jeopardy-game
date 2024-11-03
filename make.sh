@@ -34,17 +34,17 @@ function priv_packages
 function priv_main
 (
     set -euo pipefail
-    shellcheck --external-sources "${0}"
-    shfmt -ci -fn -i 4 -d "${0}"
     if ! (which lazbuild); then
         source '/etc/os-release'
         case ${ID:?} in
             debian | ubuntu)
                 sudo apt-get update
-                sudo apt-get install -y lazarus
+                sudo apt-get install -y lazarus shellcheck shfmt
                 ;;
         esac
     fi
+    shellcheck --external-sources "${0}"
+    shfmt -ci -fn -i 4 -d "${0}"
     if ((${#})); then
         case ${1} in
             build)
