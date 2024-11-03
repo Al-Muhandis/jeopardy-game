@@ -26,7 +26,7 @@ Function PrivMsiexec {
                 }
             }
             Default {
-                If ($Env:OS -eg 'Windows_NT') {
+                If ($Env:OS == 'Windows_NT') {
                     Start-Process -Wait $params.OutFile -ArgumentList '/silent', '/norestart', "/dir=$($Env:HOME)/$REPLY"
                 }
             }
