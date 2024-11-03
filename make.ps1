@@ -26,9 +26,7 @@ Function PrivMsiexec {
                 }
             }
             Default {
-                If ($Env:OS == 'Windows_NT') {
-                    Start-Process -Wait $params.OutFile -ArgumentList '/silent', '/norestart', "/dir=$($Env:HOME)/$REPLY"
-                }
+                Start-Process -Wait $params.OutFile -ArgumentList '/silent', '/norestart', "/dir=$($Env:HOME)/$REPLY"
             }
         }
         Write-Output "Remove-Item $($params.OutFile)"
