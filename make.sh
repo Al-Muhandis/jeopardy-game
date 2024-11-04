@@ -34,20 +34,18 @@ function priv_packages
 function priv_main
 (
     set -euo pipefail
-    if ! (which lazbuild); then
-        source '/etc/os-release'
-        case ${ID:?} in
-            debian | ubuntu)
-                sudo apt-get update
-                sudo apt-get install -y lazarus shellcheck shfmt
-                ;;
-        esac
-    fi
-    shellcheck --external-sources "${0}"
-    shfmt -ci -fn -i 4 -d "${0}"
     if ((${#})); then
         case ${1} in
             build)
+                if ! (which lazbuild); then
+                    source '/etc/os-release'
+                    case ${ID:?} in
+                        debian | ubuntu)
+                            sudo apt-get update
+                            sudo apt-get install -y lazarus
+                            ;;
+                    esac
+                fi
                 priv_packages 'Rx' 'ZeosDBO'
                 find 'src' -type 'f' -name '*.lpi' \
                     -exec lazbuild --no-write-project --recursive --no-write-project --build-mode=release {} + 1>&2

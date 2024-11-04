@@ -9,45 +9,37 @@ Options:
 "
 }
 
-Function PrivMsiexec {
-    Foreach ($REPLY in $args) {
+Function PrivWget {
+    ForEach ($REPLY in $args) {
         $params = @{
             Uri = $REPLY
             OutFile = (Split-Path -Path $REPLY -Leaf).Split('?')[0]
         }
-        $ProgressPreference = 'SilentlyContinue'
-        Invoke-WebRequest @params
-        $ProgressPreference = 'Continue'
-        Switch ((Split-Path -Path $params.OutFile -Leaf).Split('.')[-1]) {
-            'msi' {
-                Start-Process -Wait -FilePath 'msiexec' -ArgumentList '/passive', '/package', $params.OutFile
-            }
-            'exe' {
-                Start-Process -Wait $params.OutFile -ArgumentList '/silent', '/norestart', "/dir=$($Env:HOME)/$((Split-Path -Path $params.OutFile -Leaf).Split('.')[0])"
-            }
-        }
-        Remove-Item $params.OutFile
+        Invoke-WebRequest @params | Out-Null
+        Return $params.OutFile
+    }
+}
+
+Function PrivMsiexec {
+    While ($Input.MoveNext()) {
+        Start-Process -PassThru -Wait -FilePath $Input.Current -ArgumentList '/SP-', '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'
+        Remove-Item $Input.Current
     }
 }
 
 Function PrivPrepare {
-    $VAR = @{
-        far = 'https://www.farmanager.com/files/Far30b6060.x64.20221208.msi'
-        git  = 'https://github.com/git-for-windows/git/releases/download/v2.47.0.windows.2/Git-2.47.0.2-64-bit.exe'
-        lazbuild = 'https://netix.dl.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%203.6/lazarus-3.6-fpc-3.2.2-win64.exe?viasf=1'
-    }
-    ForEach ($REPLY in $VAR.Keys) {
-        If (Get-Command $REPLY -ea 'silentlycontinue') {
-            PrivMsiexec $VAR[$REPLY]
-            Get-ChildItem -Filter $REPLY -Recurse -File –Path $Env:HOME
+    $VAR = @(
+        @{
+            Cmd = 'lazbuild'
+            Url = 'https://netix.dl.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%203.6/lazarus-3.6-fpc-3.2.2-win64.exe?viasf=1'
+            Path = "C:\Lazarus"
         }
-    }
-}
-
-Function PrivPkgsearch {
-    ForEach ($REPLY in $args) {
-        If (-not (Start-Process -Wait -FilePath 'lazbuild' -ArgumentList '--verbose-pkgsearch', $REPLY)) {
-            Start-Process -Wait -FilePath 'lazbuild' -ArgumentList '--add-package', $REPLY
+    )
+    ForEach ($REPLY in $VAR) {
+        If (-not (Get-Command $REPLY.Cmd -ea 'continue')) {
+            PrivWget $REPLY.Url | PrivMsiexec
+            $env:PATH+=";$($REPLY.Path)"
+            Get-Command $REPLY.Cmd
         }
     }
 }
@@ -61,15 +53,8 @@ Function PrivPackages {
     }
     If ($args.count -gt 0) {
         ForEach ($REPLY in $args) {
-            $params = @{
-                Uri = "https://packages.lazarus-ide.org/$($REPLY).zip"
-                OutFile = "$($REPLY).zip"
-            }
-            $ProgressPreference = 'SilentlyContinue'
-            Invoke-WebRequest @params
-            $ProgressPreference = 'Continue'
-            Expand-Archive -Path $params.OutFile -DestinationPath $REPLY -Force
-            Remove-Item $params.OutFile
+            PrivWget "https://packages.lazarus-ide.org/$($REPLY).zip" | Expand-Archive -DestinationPath "use/$($REPLY).zip" -Force
+            Remove-Item "$($REPLY).zip"
         }
     }
     Get-ChildItem -Filter '*.lpk' -Recurse -File –Path 'use' | ForEach-Object {
@@ -85,7 +70,6 @@ Function PrivMain {
         PrivPrepare
         Switch ($args[0]) {
             'build' {
-                PrivPkgsearch
                 PrivPackages 'Rx' 'ZeosDBO'
                 Get-ChildItem -Filter '*.lpi' -Recurse -File –Path 'src' | ForEach-Object {
                     Start-Process -Wait -FilePath 'lazbuild' -ArgumentList '--no-write-project', '--recursive', '--no-write-project', '--build-mode=release', $_.Name
