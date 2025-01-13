@@ -67,6 +67,7 @@ begin
         end;
       end;
       Zip.Free;
+      CreateDir(OutputPath);
       with TUnZipper.Create do
       begin
         try
@@ -78,6 +79,7 @@ begin
           Free;
         end;
       end;
+      DeleteFile(FileName);
       List := FindAllFiles(OutputPath, '*.lpk', True);
       try
         for Item in List do
