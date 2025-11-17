@@ -9,7 +9,6 @@ on:
       - "**"
   pull_request:
     branches:
-      - master
       - main
 
 concurrency:
@@ -24,6 +23,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
+          - windows-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v5
@@ -36,3 +36,8 @@ jobs:
         sudo bash -c 'apt-get update; apt-get install -y lazarus' >/dev/null
         declare -rx INSTANTFPCOPTIONS='-Fu/usr/lib/lazarus/*/components/lazutils'
         instantfpc '.github/workflows/make.pas' build
+
+    - name: Build on Windows
+      if: runner.os == 'Windows'
+      shell: powershell
+      run: pwsh -File .github/workflows/make.ps1
