@@ -30,6 +30,21 @@ uses
     Writeln(stderr, UTF8ToConsole(OutLog.Format([Msg])));
   end;
 
+  function SelectString(const Input, Reg: string): string; cdecl;
+  var
+    Line: string;
+  begin
+    SelectString := EmptyStr;
+    with TRegExpr.Create do
+    begin
+      Expression := Reg;
+      for Line in Input.Split(LineEnding) do
+        if Exec(Line) then
+          SelectString += Line + LineEnding;
+      Free;
+    end;
+  end;
+
   function AddPackage(const Path: string): string; cdecl;
   begin
     AddPackage :=
@@ -44,21 +59,6 @@ uses
         OutLog(etDebug, 'Add package:'#9 + Path)
       else
         OutLog(etError, AddPackage);
-  end;
-
-  function SelectString(const Input, Reg: string): string; cdecl;
-  var
-    Line: string;
-  begin
-    SelectString := EmptyStr;
-    with TRegExpr.Create do
-    begin
-      Expression := Reg;
-      for Line in Input.Split(LineEnding) do
-        if Exec(Line) then
-          SelectString += Line + LineEnding;
-      Free;
-    end;
   end;
 
   function ConsoleTestRunner(const Path: String): string; cdecl;
@@ -110,7 +110,7 @@ uses
         AddHeader('User-Agent', 'Mozilla/5.0 (compatible; fpweb)');
         AllowRedirect := True;
         Get(Uri, FileStream);
-        OutLog(etDebug, 'Download from'#9 + Uri + #9'to'#9 + DownloadFile;
+        OutLog(etDebug, 'Download from'#9 + Uri + #9'to'#9 + DownloadFile);
       finally
         Free;
         OutFile.Free;
