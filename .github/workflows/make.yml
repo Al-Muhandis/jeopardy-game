@@ -31,6 +31,7 @@ jobs:
         submodules: true
 
     - name: Build
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         sudo bash -c 'apt-get update; apt-get install -y lazarus' >/dev/null
