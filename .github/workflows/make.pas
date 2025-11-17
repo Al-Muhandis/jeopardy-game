@@ -113,7 +113,7 @@ uses
         OutLog(etDebug, 'Download from'#9 + Uri + #9'to'#9 + DownloadFile);
       finally
         Free;
-        OutFile.Free;
+        FileStream.Free;
       end;
     end;
   end;
@@ -149,12 +149,13 @@ uses
         UnZip(DownloadFile('https://packages.lazarus-ide.org/' + Path + '.zip'), InstallOPM);
   end;
 
-  function BuildAll(const Dependencies: array of string): string; cdecl;
+  function BuildAll(const Dependencies: array of string): string;
   var
     List: TStringList;
     DT: TDateTime;
   begin
     // INSTALL-ENVIRONMENTS
+    DT := Time;
     if FileExists('.gitmodules') then
       if not RunCommand('git', ['submodule', 'update', '--init', '--recursive',
         '--force', '--remote'], BuildAll, [poStderrToOutPut]) then
