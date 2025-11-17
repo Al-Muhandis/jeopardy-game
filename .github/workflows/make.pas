@@ -178,7 +178,7 @@ uses
       List.Free;
     end;
     OutLog(etDebug, 'Duration:'#9'%s'#10'Errors:'#9'%s'.Format(
-      [FormatDateTime('hh:nn:ss', Time - DT)), ExitCode.ToString]
+      [FormatDateTime('hh:nn:ss', Time - DT), ExitCode.ToString]
     ));
   end;
 
