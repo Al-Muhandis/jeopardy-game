@@ -1,8 +1,6 @@
 [submodule "use/fp-telegram"]
     path = use/fp-telegram
     url = https://github.com/Al-Muhandis/fp-telegram/
-    branch = master
 [submodule "use/taskworker"]
     path = use/taskworker
     url = https://github.com/Al-Muhandis/taskworker.git
-    branch = master
