@@ -154,13 +154,6 @@ begin
     ), '*.lpk') do
       AddPackage(Result, true);
   OutLog(etDebug, #10'#----------------------------------[GET IN  DEPENDENS]----------------------------------#'#10);
-  for Result in FindAllFiles(GetCurrentDir + DirectorySeparator + 'TeroSubtitler' + DirectorySeparator + 'common', '*.lpk') do
-    AddPackage(Result, false);
-  for Result in FindAllFiles(GetCurrentDir + DirectorySeparator + 'TeroSubtitler' + DirectorySeparator + 'subtitleapi', '*.lpk') do
-    AddPackage(Result, false);
-  for Result in FindAllFiles(GetCurrentDir + DirectorySeparator + 'TeroSubtitler' + DirectorySeparator + 'controls', '*.lpk') do
-    AddPackage(Result, false);
-  OutLog(etDebug, #10'#----------------------------------[GET USE DEPENDENS]----------------------------------#'#10);
   for Result in FindAllFiles(GetCurrentDir + DirectorySeparator + 'use', '*.lpk') do
     AddPackage(Result, false);
   OutLog(etDebug, #10'#----------------------------------[BUILD     PROECTS]----------------------------------#'#10);
