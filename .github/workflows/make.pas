@@ -18,169 +18,162 @@ uses
   eventlog,
   Process;
 
-  function OutLog(const Knd: TEventType; const Msg: string): string; cdecl;
-  begin
-    case Knd of
-      etError: OutLog := #27'[31m%s'#27'[0m';
-      etInfo:  OutLog := #27'[32m%s'#27'[0m';
-      etDebug: OutLog := #27'[33m%s'#27'[0m';
-    end;
-    if Knd = etError then
-        ExitCode += 1;
-    Writeln(stderr, UTF8ToConsole(OutLog.Format([Msg])));
+function OutLog(const Knd: TEventType; const Msg: string): string; cdecl;
+begin
+  case Knd of
+    etError: Result := #27'[31m%s'#27'[0m';
+    etInfo:  Result := #27'[32m%s'#27'[0m';
+    etDebug: Result := #27'[33m%s'#27'[0m';
   end;
+  if Knd = etError then ExitCode += 1;
+  Writeln(stderr, UTF8ToConsole(Result.Format([Msg])));
+end;
 
-  function SelectString(const Input, Reg: string): string; cdecl;
-  var
-    Line: string;
-  begin
-    SelectString := EmptyStr;
-    with TRegExpr.Create do
-    begin
-      Expression := Reg;
-      for Line in Input.Split(LineEnding) do
-        if Exec(Line) then
-          SelectString += Line + LineEnding;
+function SelectString(const Input, Reg: string): string; cdecl;
+var Line: string;
+begin
+  Result := EmptyStr;
+  with TRegExpr.Create do begin
+    Expression := Reg;
+    for Line in Input.Split(LineEnding) do
+      if Exec(Line) then Result += Line + LineEnding;
+    Free;
+  end;
+end;
+
+function RunShell(const Command: String): string; cdecl;
+begin
+  OutLog(etDebug, '-- RunShell:'#9 + Command);
+  if not RunCommand(
+  {$IFDEF MSWINDOWS}
+  'pwsh', [
+      '-NoExit',
+      '-NonInteractive',
+      '-Command',
+      '$ErrorActionPreference = "stop"; Set-PSDebug -Strict; ' + Command + '; exit'
+    ]
+  {$ELSE}
+  'bash', ['-c', 'set -euo pipefail; ' + Command]
+  {$ENDIF}
+  , Result, [poStderrToOutPut, poWaitOnExit]) then
+    OutLog(etError, Result);
+end;
+
+function AddPackage(const Path: string; const Link: boolean): string;
+var Line: string;
+begin
+  if Link then Line := '--add-package-link'
+  else Line := '--build-all'; 
+  Result := {$IFDEF MSWINDOWS}
+    '(cocoa|x11|_template)' {$ELSE}
+    '(cocoa|gdi|_template)' {$ENDIF};
+  OutLog(etDebug, 'AddPackage:'#9 + Path);
+  if SelectString(Path, Result) = EmptyStr then
+    RunShell('lazbuild --recursive %s %s'.Format([Line, Path]));
+end;
+
+function AddLibrary(const Path: String): string; cdecl;
+begin
+  Result := '/usr/lib/';
+  OutLog(etDebug, 'AddLibrary:'#9 + Path);
+  if not FileExists(Result + ExtractFileName(Path)) then
+    RunShell('sudo cp %s %s; ldconfig'.Format([Path, Result]));
+end;
+
+function BuildProject(const Path: string): string; cdecl;
+var Text: string;
+begin
+  OutLog(etDebug, 'BuildProject from:'#9 + Path);
+  if not RunCommand('lazbuild',
+    ['--build-all', '--recursive', '--no-write-project', Path], Result, [poStderrToOutPut, poWaitOnExit])
+  then OutLog(etError, SelectString(Result, '(Fatal|Error):'))
+  else begin
+    Result := SelectString(Result, 'Linking').Split(' ')[2].Replace(LineEnding, EmptyStr);
+    OutLog(etInfo, #10#9'to:'#9 + Result);
+    Text := ReadFileToString(Path.Replace('.lpi', '.lpr'));
+    if Text.Contains('program') and Text.Contains('consoletestrunner') then
+      RunShell('%s --all --format=plain'.Format([Result]))
+    else if Text.Contains('library') and Text.Contains('exports') then
+      AddLibrary(Result);
+  end;
+end;
+
+function ExtractPackage(const ZipFile: string): string; cdecl;
+begin
+  Result := GetEnvironmentVariable({$IFDEF MSWINDOWS}'APPDATA'{$ELSE}'HOME'{$ENDIF})
+    + '/.lazarus/onlinepackagemanager/packages/'.Replace('/', DirectorySeparator)
+    + ZipFile.Split('_')[1];
+  OutLog(etDebug, 'ExtPackage from:'#9 + ZipFile + #10#9'to:'#9 + Result);
+  if not DirectoryExists(Result) and ForceDirectories(Result) then
+  with TUnZipper.Create do begin
+    try
+      FileName := ZipFile;
+      OutputPath := Result;
+      Examine;
+      UnZipAllFiles;
+      DeleteFile(ZipFile);
+    finally
       Free;
     end;
   end;
+end;
 
-  function AddPackage(const Path: string): string; cdecl;
-  begin
-    AddPackage :=
-      {$IFDEF MSWINDOWS}
-        '(cocoa|x11|_template)'
-      {$ELSE}
-        '(cocoa|gdi|_template)'
-      {$ENDIF}
-    ;
-    if SelectString(Path, AddPackage) = EmptyStr then
-      if RunCommand('lazbuild', ['--add-package-link', Path], AddPackage, [poStderrToOutPut]) then
-        OutLog(etDebug, 'Add package:'#9 + Path)
-      else
-        OutLog(etError, AddPackage);
-  end;
-
-  function ConsoleTestRunner(const Path: String): string; cdecl;
-  begin
-    OutLog(etDebug, #9'Run test:'#9 + Path);
-    if not RunCommand(Path, ['--all', '--format=plain'], ConsoleTestRunner, [poStderrToOutPut]) then
-      OutLog(etError, ConsoleTestRunner);
-  end;
-
-  function AddLibrary(const Path: String): string; cdecl;
-  const
-    LibPath: string = '/usr/lib/';
-  begin
-    OutLog(etDebug, #9'Add lib:'#9 + Path);
-    if not FileExists(LibPath + ExtractFileName(Path)) and not RunCommand('sudo', ['cp', Path, LibPath, ';',  'ldconfig'], AddLibrary, [poStderrToOutPut]) then
-        OutLog(etError, AddLibrary);
-  end;
-
-  function BuildProject(const Path: string): string; cdecl;
-  var
-    Text: string;
-  begin
-    OutLog(etDebug, 'Build from:'#9 + Path);
-    if RunCommand('lazbuild',
-      ['--build-all', '--recursive', '--no-write-project', Path], BuildProject, [poStderrToOutPut, poWaitOnExit]) then
-    begin
-      BuildProject := SelectString(BuildProject, 'Linking').Split(' ')[2].Replace(LineEnding, EmptyStr);
-      OutLog(etInfo, #9'to:'#9 + BuildProject);
-      Text := ReadFileToString(Path.Replace('.lpi', '.lpr'));
-      if Text.Contains('program') and Text.Contains('consoletestrunner') then
-        ConsoleTestRunner(BuildProject)
-      else if Text.Contains('library') and Text.Contains('exports') then
-        AddLibrary(BuildProject)
-    end
-    else
-      OutLog(etError, SelectString(BuildProject, '(Fatal|Error):'));
-  end;
-
-  function DownloadFile(const Uri: string): string; cdecl;
-  var
-    FileStream: TStream;
-  begin
+function GetPackage(const Uri, Package: string): string; cdecl;
+var FileStream: TStream;
+begin
+  Result := '%s_%s'.Format([GetTempFileName, Package]);
+  OutLog(etDebug, 'GetPackage from'#9 + Uri + #10#9'to:'#9 + Result);
+  {$IFDEF MSWINDOWS}
+    RunShell('Invoke-WebRequest -Uri %s -OutFile %s'.Format([Uri + Package + '.zip', Result]));
+  {$ELSE}
     InitSSLInterface;
-    DownloadFile := GetTempFileName;
-    FileStream := TFileStream.Create(DownloadFile, fmCreate or fmOpenWrite);
-    with TFPHttpClient.Create(nil) do
-    begin
+    FileStream := TFileStream.Create(Result, fmCreate or fmOpenWrite);
+    with TFPHttpClient.Create(nil) do begin
       try
         AddHeader('User-Agent', 'Mozilla/5.0 (compatible; fpweb)');
         AllowRedirect := True;
-        Get(Uri, FileStream);
-        OutLog(etDebug, 'Download from'#9 + Uri + #9'to'#9 + DownloadFile);
+        Get(Uri + Package + '.zip', FileStream);
       finally
         Free;
         FileStream.Free;
       end;
     end;
-  end;
+  {$ENDIF}
+end;
 
-  procedure UnZip(const ZipFile, ZipPath: string); cdecl;
-  begin
-    with TUnZipper.Create do
-    begin
-      try
-        FileName := ZipFile;
-        OutputPath := ZipPath;
-        Examine;
-        UnZipAllFiles;
-        OutLog(etDebug, 'Unzip from'#9 + ZipFile + #9'to'#9 + ZipPath);
-        DeleteFile(ZipFile);
-      finally
-        Free;
-      end;
-    end;
+function BuildAll(const OutDep: array of string): string;
+var
+  Item: string;
+  DT: TDateTime;
+begin
+  DT := Time;
+  OutLog(etDebug, #10'#----------------------------------[GET OUT DEPENDENS]----------------------------------#'#10);
+  for Item in OutDep do
+    for Result in FindAllFiles(ExtractPackage(
+      GetPackage('https://packages.lazarus-ide.org/', Item)
+    ), '*.lpk') do
+      AddPackage(Result, true);
+  OutLog(etDebug, #10'#----------------------------------[GET IN  DEPENDENS]----------------------------------#'#10);
+  for Result in FindAllFiles(GetCurrentDir + DirectorySeparator + 'TeroSubtitler' + DirectorySeparator + 'common', '*.lpk') do
+    AddPackage(Result, false);
+  for Result in FindAllFiles(GetCurrentDir + DirectorySeparator + 'TeroSubtitler' + DirectorySeparator + 'subtitleapi', '*.lpk') do
+    AddPackage(Result, false);
+  for Result in FindAllFiles(GetCurrentDir + DirectorySeparator + 'TeroSubtitler' + DirectorySeparator + 'controls', '*.lpk') do
+    AddPackage(Result, false);
+  OutLog(etDebug, #10'#----------------------------------[GET USE DEPENDENS]----------------------------------#'#10);
+  for Result in FindAllFiles(GetCurrentDir + DirectorySeparator + 'use', '*.lpk') do
+    AddPackage(Result, false);
+  OutLog(etDebug, #10'#----------------------------------[BUILD     PROECTS]----------------------------------#'#10);
+  for Result in FindAllFiles(GetCurrentDir, '*.lpi') do
+    if not Result.Contains(DirectorySeparator + 'use' + DirectorySeparator) then
+      BuildProject(Result);
+  OutLog(etDebug, #10'#----------------------------------[      RESULT      ]----------------------------------#'#10);
+  OutLog(etDebug, 'Duration:'#9 + FormatDateTime('hh:nn:ss', Time - DT));
+  case ExitCode of
+    0: OutLog(etInfo,    #9'Errors:'#9 + ExitCode.ToString);
+    else OutLog(etError, #9'Errors:'#9 + ExitCode.ToString);
   end;
-
-  function InstallOPM(const Path: string): string; cdecl;
-  begin
-    InstallOPM :=
-      {$IFDEF MSWINDOWS}
-      GetEnvironmentVariable('APPDATA')
-      {$ELSE}
-      GetEnvironmentVariable('HOME')
-      {$ENDIF}
-      + '/.lazarus/onlinepackagemanager/packages/'.Replace('/', DirectorySeparator)
-      + Path;
-    if not DirectoryExists(InstallOPM) and ForceDirectories(InstallOPM) then
-        UnZip(DownloadFile('https://packages.lazarus-ide.org/' + Path + '.zip'), InstallOPM);
-  end;
-
-  function BuildAll(const Dependencies: array of string): string;
-  var
-    List: TStringList;
-    DT: TDateTime;
-  begin
-    // INSTALL-ENVIRONMENTS
-    DT := Time;
-    if FileExists('.gitmodules') then
-      if not RunCommand('git', ['submodule', 'update', '--init', '--recursive',
-        '--force', '--remote'], BuildAll, [poStderrToOutPut]) then
-        OutLog(etError, BuildAll);
-    // INSTALL-PACKAGES
-    List := FindAllFiles(GetCurrentDir, '*.lpk');
-    try
-      for BuildAll in Dependencies do
-        List.AddStrings(FindAllFiles(InstallOPM(BuildAll), '*.lpk'));
-      List.Sort;
-      for BuildAll in List do
-        AddPackage(BuildAll);
-      // BUILD-PROJECTS
-      List := FindAllFiles(GetCurrentDir, '*.lpi');
-      List.Sort;
-      for BuildAll in List do
-        if not BuildAll.Contains(DirectorySeparator + 'use' + DirectorySeparator) then
-          BuildProject(BuildAll);
-    finally
-      List.Free;
-    end;
-    OutLog(etDebug, 'Duration:'#9'%s'#10'Errors:'#9'%s'.Format(
-      [FormatDateTime('hh:nn:ss', Time - DT), ExitCode.ToString]
-    ));
-  end;
+end;
 
 //-------------------------------------------------------------------------------
 // MAIN ENDPOINT
